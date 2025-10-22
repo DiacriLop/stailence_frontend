@@ -94,10 +94,13 @@ class AppState extends ChangeNotifier {
   }
 
   List<Servicio> serviciosFiltrados({String? categoria, int? empleadoId}) {
-    List<Servicio> servicios = _database.servicesByCategory(categoria);
+    final String? normalizedCategory =
+        categoria == null || categoria.isEmpty || categoria == 'Todos' ? null : categoria;
+    List<Servicio> servicios = _database.servicesByCategory(normalizedCategory);
     if (empleadoId != null) {
-      final List<Servicio> byEmployee = _database.servicesByEmployee(empleadoId);
-      servicios = servicios.where((Servicio servicio) => byEmployee.contains(servicio)).toList();
+      final Set<int> serviciosEmpleado =
+          _database.servicesByEmployee(empleadoId).map((Servicio servicio) => servicio.id).toSet();
+      servicios = servicios.where((Servicio servicio) => serviciosEmpleado.contains(servicio.id)).toList();
     }
     return servicios;
   }

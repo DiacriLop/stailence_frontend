@@ -6,6 +6,7 @@ import '../../../core/constants/text_styles.dart';
 import '../../../domain/entities/negocio.dart';
 import '../../../domain/entities/servicio.dart';
 import '../../widgets/empty_state.dart';
+import '../servicios/servicio_detalle_page.dart';
 
 class NegocioDetallePage extends StatelessWidget {
   const NegocioDetallePage({super.key, required this.negocio});
@@ -133,50 +134,57 @@ class NegocioDetallePage extends StatelessWidget {
                       children: List.generate(negocio.serviciosDestacados!.length, (index) {
                         final Servicio service = negocio.serviciosDestacados![index];
                         final bool isLast = index == negocio.serviciosDestacados!.length - 1;
-                        return Container(
-                          margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: AppColors.border),
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: () => Navigator.of(context).pushNamed(
+                            ServicioDetallePage.routeName,
+                            arguments: service,
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.16),
-                                  shape: BoxShape.circle,
+                          child: Container(
+                            margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(0.16),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.content_cut, color: AppColors.primary, size: 18),
                                 ),
-                                child: const Icon(Icons.content_cut, color: AppColors.primary, size: 18),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      service.nombre,
-                                      style: AppTextStyles.body.copyWith(
-                                        color: AppColors.textPrimary,
-                                        fontWeight: FontWeight.w600,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        service.nombre,
+                                        style: AppTextStyles.body.copyWith(
+                                          color: AppColors.textPrimary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${service.duracion} min',
-                                      style: AppTextStyles.body,
-                                    ),
-                                  ],
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${service.duracion} min',
+                                        style: AppTextStyles.body,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                _formatCurrency(service.precio),
-                                style: AppTextStyles.subtitle.copyWith(color: AppColors.primary, fontSize: 16),
-                              ),
-                            ],
+                                Text(
+                                  _formatCurrency(service.precio),
+                                  style: AppTextStyles.subtitle.copyWith(color: AppColors.primary, fontSize: 16),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }),

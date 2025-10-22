@@ -5,6 +5,7 @@ import 'presentation/pages/auth/register_page.dart';
 import 'presentation/pages/citas/cita_detalle_page.dart';
 import 'presentation/pages/citas/citas_page.dart';
 import 'presentation/pages/citas/nueva_cita_page.dart';
+import 'domain/entities/servicio.dart';
 import 'presentation/pages/home/home_page.dart';
 import 'presentation/pages/home/tab_admin.dart';
 import 'presentation/pages/home/tab_client.dart';
@@ -46,7 +47,12 @@ class AppRouter {
       case CitaDetallePage.routeName:
         return _buildPage(const CitaDetallePage());
       case NuevaCitaPage.routeName:
-        return _buildPage(const NuevaCitaPage());
+        final NuevaCitaPageArguments? nuevaCitaArgs =
+            settings.arguments as NuevaCitaPageArguments?;
+        if (nuevaCitaArgs == null) {
+          return _buildPage(const _RouteErrorPage(message: 'Información de cita no disponible'));
+        }
+        return _buildPage(NuevaCitaPage(arguments: nuevaCitaArgs));
       case ServiciosPage.routeName:
         return _buildPage(const ServiciosPage());
       case NegociosPage.routeName:
@@ -58,7 +64,11 @@ class AppRouter {
         }
         return _buildPage(NegocioDetallePage(negocio: negocio));
       case ServicioDetallePage.routeName:
-        return _buildPage(const ServicioDetallePage());
+        final Servicio? servicio = settings.arguments as Servicio?;
+        if (servicio == null) {
+          return _buildPage(const _RouteErrorPage(message: 'Servicio no disponible'));
+        }
+        return _buildPage(ServicioDetallePage(servicio: servicio));
       case NotificacionesPage.routeName:
         return _buildPage(const NotificacionesPage());
       case PagosPage.routeName:
