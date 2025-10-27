@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../application/app_state.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/text_styles.dart';
 import '../../../core/utils/formatters.dart';
@@ -383,6 +385,11 @@ class _HomeDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppState appState = context.watch<AppState>();
+    final String userName = appState.currentUser != null
+        ? '${appState.currentUser!.nombre} ${appState.currentUser!.apellido}'.trim()
+        : 'Invitado';
+
     final List<_Category> categories = const [
       _Category(icon: Icons.content_cut, label: 'Cortes'),
       _Category(icon: Icons.brush, label: 'Tintes'),
@@ -411,7 +418,7 @@ class _HomeDashboardView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Header(onViewAllServices: onViewAllServices),
+              _Header(onViewAllServices: onViewAllServices, displayName: userName),
               const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -448,9 +455,10 @@ class _HomeDashboardView extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onViewAllServices});
+  const _Header({required this.onViewAllServices, required this.displayName});
 
   final VoidCallback onViewAllServices;
+  final String displayName;
 
   @override
   Widget build(BuildContext context) {
@@ -477,7 +485,7 @@ class _Header extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hola, Daniela Fernández',
+                      'Hola, $displayName'.trim(),
                       style: AppTextStyles.subtitle.copyWith(
                         color: Colors.white,
                       ),

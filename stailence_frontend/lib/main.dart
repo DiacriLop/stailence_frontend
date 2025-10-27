@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-
 import 'package:provider/provider.dart';
 
 import 'app_router.dart';
 import 'application/app_state.dart';
 import 'core/constants/app_strings.dart';
+import 'injection_container.dart';
 import 'presentation/themes/app_theme.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await InjectionContainer.init();
   runApp(const StailenceApp());
 }
 
@@ -19,7 +20,7 @@ class StailenceApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<AppState>(
-      create: (_) => AppState(),
+      create: (_) => AppState(authRepository: InjectionContainer.authRepository),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: AppStrings.appName,
