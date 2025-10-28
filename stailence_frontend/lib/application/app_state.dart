@@ -74,6 +74,7 @@ class AppState extends ChangeNotifier {
     required String apellido,
     required String correo,
     required String contrasena,
+    required String confirmarContrasena,
   }) async {
     _isAuthenticating = true;
     _authError = null;
@@ -85,6 +86,7 @@ class AppState extends ChangeNotifier {
         apellido: apellido,
         correo: correo,
         contrasena: contrasena,
+        confirmarContrasena: confirmarContrasena,
       );
       final Usuario user =
           await _authRepository.login(correo: correo, contrasena: contrasena);

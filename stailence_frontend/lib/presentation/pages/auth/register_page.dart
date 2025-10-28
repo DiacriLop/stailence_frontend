@@ -21,7 +21,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -29,6 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -44,6 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
       apellido: _lastNameController.text.trim(),
       correo: _emailController.text.trim(),
       contrasena: _passwordController.text,
+      confirmarContrasena: _confirmPasswordController.text,
     );
 
     if (!mounted) {
@@ -155,6 +159,32 @@ class _RegisterPageState extends State<RegisterPage> {
                       }
                       if (value.length < 6) {
                         return 'Debe tener al menos 6 caracteres';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscureConfirmPassword,
+                    decoration: InputDecoration(
+                      labelText: 'Confirmar contraseña',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
+                      ),
+                    ),
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Confirma tu contraseña';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Las contraseñas no coinciden';
                       }
                       return null;
                     },

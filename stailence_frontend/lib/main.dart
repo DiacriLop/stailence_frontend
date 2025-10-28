@@ -20,7 +20,8 @@ class StailenceApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<AppState>(
-      create: (_) => AppState(authRepository: InjectionContainer.authRepository),
+      create: (_) =>
+          AppState(authRepository: InjectionContainer.authRepository),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: AppStrings.appName,

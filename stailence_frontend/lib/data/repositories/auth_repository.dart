@@ -89,6 +89,7 @@ class AuthRepository {
     required String apellido,
     required String correo,
     required String contrasena,
+    required String confirmarContrasena,
   }) async {
     final UsuarioModel user = await _authService.register(
       RegisterRequest(
@@ -96,6 +97,7 @@ class AuthRepository {
         apellido: apellido,
         correo: correo,
         contrasena: contrasena,
+        confirmarContrasena: confirmarContrasena,
       ),
     );
 
