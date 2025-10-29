@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../application/app_state.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/text_styles.dart';
+import '../auth/login_page.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -18,6 +21,12 @@ class _PerfilPageState extends State<PerfilPage> {
 
   @override
   Widget build(BuildContext context) {
+    final AppState appState = context.watch<AppState>();
+    final bool isLoggedIn = appState.isLoggedIn;
+    final user = appState.currentUser;
+    final String displayName = user != null ? '${user.nombre} ${user.apellido}'.trim() : 'Invitado';
+    final String displayEmail = user?.correo ?? 'Sin correo';
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -49,9 +58,16 @@ class _PerfilPageState extends State<PerfilPage> {
               padding: const EdgeInsets.fromLTRB(20, 120, 20, 32),
               child: Column(
                 children: [
-                  _ProfileHeader(onEdit: () {}),
+                  _ProfileHeader(
+                    onEdit: () {},
+                    name: displayName,
+                    email: displayEmail,
+                  ),
                   const SizedBox(height: 24),
                   _ProfileForm(
+                    isLoggedIn: isLoggedIn,
+                    name: displayName,
+                    email: displayEmail,
                     selectedGender: _selectedGender,
                     onGenderChanged: (value) {
                       if (value != null) {
@@ -66,6 +82,18 @@ class _PerfilPageState extends State<PerfilPage> {
                         _receiveNotifications = value;
                       });
                     },
+                    onLogout: isLoggedIn
+                        ? () async {
+                            await context.read<AppState>().logout();
+                            if (!mounted) {
+                              return;
+                            }
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              LoginPage.routeName,
+                              (route) => false,
+                            );
+                          }
+                        : null,
                   ),
                 ],
               ),
@@ -78,9 +106,11 @@ class _PerfilPageState extends State<PerfilPage> {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.onEdit});
+  const _ProfileHeader({required this.onEdit, required this.name, required this.email});
 
   final VoidCallback onEdit;
+  final String name;
+  final String email;
 
   @override
   Widget build(BuildContext context) {
@@ -136,9 +166,9 @@ class _ProfileHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text('Daniela Fernández', style: AppTextStyles.subtitle.copyWith(fontSize: 22)),
+          Text(name, style: AppTextStyles.subtitle.copyWith(fontSize: 22)),
           const SizedBox(height: 6),
-          Text('daniela.fernandez@email.com', style: AppTextStyles.body),
+          Text(email, style: AppTextStyles.body),
         ],
       ),
     );
@@ -147,16 +177,24 @@ class _ProfileHeader extends StatelessWidget {
 
 class _ProfileForm extends StatelessWidget {
   const _ProfileForm({
+    required this.isLoggedIn,
+    required this.name,
+    required this.email,
     required this.selectedGender,
     required this.onGenderChanged,
     required this.receiveNotifications,
     required this.onNotificationsChanged,
+    this.onLogout,
   });
 
+  final bool isLoggedIn;
+  final String name;
+  final String email;
   final String selectedGender;
   final ValueChanged<String?> onGenderChanged;
   final bool receiveNotifications;
   final ValueChanged<bool> onNotificationsChanged;
+  final VoidCallback? onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -178,18 +216,20 @@ class _ProfileForm extends StatelessWidget {
         children: [
           Text('Información personal', style: AppTextStyles.subtitle),
           const SizedBox(height: 20),
-          const _ProfileField(
+          _ProfileField(
             label: 'Nombre completo',
             hint: 'Tu nombre',
-            initialValue: 'Daniela Fernández',
+            initialValue: name,
+            readOnly: true,
             icon: Icons.person_outline,
           ),
           const SizedBox(height: 16),
-          const _ProfileField(
+          _ProfileField(
             label: 'Correo electrónico',
             hint: 'Tu correo',
+            initialValue: email,
             keyboardType: TextInputType.emailAddress,
-            initialValue: 'daniela.fernandez@email.com',
+            readOnly: true,
             icon: Icons.email_outlined,
           ),
           const SizedBox(height: 16),
@@ -255,8 +295,8 @@ class _ProfileForm extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
-              child: const Text('Cerrar sesión'),
+              onPressed: onLogout,
+              child: Text(isLoggedIn ? 'Cerrar sesión' : 'Inicia sesión'),
             ),
           ),
         ],

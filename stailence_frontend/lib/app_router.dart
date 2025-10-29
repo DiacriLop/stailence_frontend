@@ -24,7 +24,7 @@ import 'presentation/pages/splash/splash_page.dart';
 class AppRouter {
   const AppRouter._();
 
-  static const String initialRoute = HomePage.routeName;
+  static const String initialRoute = SplashPage.routeName;
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {

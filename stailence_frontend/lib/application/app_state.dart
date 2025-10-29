@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 
+import '../core/exceptions/failures.dart';
 import '../core/utils/formatters.dart';
 import '../data/mock/mock_database.dart';
+import '../data/repositories/auth_repository.dart';
 import '../domain/entities/cita.dart';
 import '../domain/entities/disponibilidad.dart';
 import '../domain/entities/notificacion.dart';
@@ -10,13 +12,27 @@ import '../domain/entities/servicio.dart';
 import '../domain/entities/usuario.dart';
 
 class AppState extends ChangeNotifier {
-  AppState();
+  AppState({required AuthRepository authRepository})
+      : _authRepository = authRepository,
+        _database = MockDatabase.instance {
+    final Usuario? persistedUser = _authRepository.currentUser;
+    if (persistedUser != null) {
+      _currentUser = _ensureMockUser(persistedUser);
+    }
+  }
 
-  final MockDatabase _database = MockDatabase.instance;
+  final AuthRepository _authRepository;
+  final MockDatabase _database;
 
   Usuario? _currentUser;
   Usuario? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
+
+  bool _isAuthenticating = false;
+  bool get isAuthenticating => _isAuthenticating;
+
+  String? _authError;
+  String? get authError => _authError;
 
   List<Servicio> get allServices => _database.servicios.toList();
   List<Usuario> get allEmployees =>
@@ -31,13 +47,26 @@ class AppState extends ChangeNotifier {
       _currentUser == null ? <Pago>[] : _database.paymentsForClient(_currentUser!.id);
 
   Future<String?> login({required String correo, required String contrasena}) async {
-    final Usuario? user = _database.findUserByCredentials(correo, contrasena);
-    if (user == null || user.rol != UsuarioRol.cliente) {
-      return 'Credenciales inválidas o rol no permitido';
-    }
-    _currentUser = user;
+    _isAuthenticating = true;
+    _authError = null;
     notifyListeners();
-    return null;
+
+    try {
+      final Usuario user =
+          await _authRepository.login(correo: correo, contrasena: contrasena);
+      _currentUser = _ensureMockUser(user, contrasena: contrasena);
+      _authError = null;
+      return null;
+    } on Failure catch (failure) {
+      _authError = failure.message;
+      return failure.message;
+    } catch (_) {
+      _authError = 'Ocurrió un error inesperado al iniciar sesión';
+      return _authError;
+    } finally {
+      _isAuthenticating = false;
+      notifyListeners();
+    }
   }
 
   Future<String?> register({
@@ -45,25 +74,54 @@ class AppState extends ChangeNotifier {
     required String apellido,
     required String correo,
     required String contrasena,
+    required String confirmarContrasena,
   }) async {
-    final Usuario? existing = _database.findUserByEmail(correo);
-    if (existing != null) {
-      return 'El correo ya está registrado';
-    }
-    final Usuario newUser = _database.registerClient(
-      nombre: nombre,
-      apellido: apellido,
-      correo: correo,
-      contrasena: contrasena,
-    );
-    _currentUser = newUser;
+    _isAuthenticating = true;
+    _authError = null;
     notifyListeners();
-    return null;
+
+    try {
+      await _authRepository.register(
+        nombre: nombre,
+        apellido: apellido,
+        correo: correo,
+        contrasena: contrasena,
+        confirmarContrasena: confirmarContrasena,
+      );
+      final Usuario user =
+          await _authRepository.login(correo: correo, contrasena: contrasena);
+      _currentUser = _ensureMockUser(user, contrasena: contrasena);
+      _authError = null;
+      return null;
+    } on Failure catch (failure) {
+      _authError = failure.message;
+      return failure.message;
+    } catch (_) {
+      _authError = 'Ocurrió un error inesperado al registrar el usuario';
+      return _authError;
+    } finally {
+      _isAuthenticating = false;
+      notifyListeners();
+    }
   }
 
-  void logout() {
+  Future<void> logout() async {
+    await _authRepository.logout();
     _currentUser = null;
     notifyListeners();
+  }
+
+  Usuario _ensureMockUser(Usuario backendUser, {String? contrasena}) {
+    final Usuario? existing = _database.findUserByEmail(backendUser.correo);
+    if (existing != null) {
+      return existing;
+    }
+    return _database.registerClient(
+      nombre: backendUser.nombre,
+      apellido: backendUser.apellido,
+      correo: backendUser.correo,
+      contrasena: contrasena ?? '***',
+    );
   }
 
   void actualizarPerfil({String? nombre, String? apellido, String? correo}) {
