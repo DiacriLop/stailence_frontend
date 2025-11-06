@@ -13,6 +13,7 @@ import 'data/services/auth_service.dart';
 import 'data/services/cita_service.dart';
 import 'data/services/servicio_service.dart';
 import 'data/services/usuario_service.dart';
+import 'application/cita_provider.dart';
 
 final getIt = GetIt.instance;
 
@@ -66,6 +67,14 @@ class InjectionContainer {
     // App State
     getIt.registerLazySingleton<AppState>(
       () => AppState(
+        authRepository: getIt<AuthRepository>(),
+      ),
+    );
+
+    // Providers
+    getIt.registerFactory<CitaProvider>(
+      () => CitaProvider(
+        citaRepository: getIt<CitaRepository>(),
         authRepository: getIt<AuthRepository>(),
       ),
     );

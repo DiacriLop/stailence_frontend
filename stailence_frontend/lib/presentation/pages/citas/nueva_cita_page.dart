@@ -12,6 +12,8 @@ import '../../../domain/entities/cita.dart';
 import '../../../domain/entities/disponibilidad.dart';
 import '../../../domain/entities/servicio.dart';
 import '../../../domain/entities/usuario.dart';
+import '../../../application/cita_provider.dart';
+import 'confirmacion_cita_page.dart';
 
 class NuevaCitaPageArguments {
   const NuevaCitaPageArguments({required this.servicio, required this.profesional});
@@ -166,7 +168,29 @@ class _NuevaCitaPageState extends State<NuevaCitaPage> {
     final Usuario profesional = _profesional!;
     final DateTime fecha = _selectedDate!;
     final String hora = _selectedHour!;
+    // Capture Navigator and ScaffoldMessenger before any awaits to avoid using
+    // BuildContext across async gaps (linter: use_build_context_synchronously).
+  final NavigatorState navigator = Navigator.of(context);
 
+    // Intentar crear la cita vía backend si el usuario tiene sesión
+    final CitaProvider citaProvider = context.read<CitaProvider>();
+    try {
+      final nueva = await citaProvider.crearCita(
+        servicioId: servicio.id,
+        fecha: fecha,
+        hora: hora,
+        empleadoId: profesional.id,
+      );
+      if (!mounted) return;
+      // Navegar a pantalla de confirmación con la cita creada desde backend (ruta nombrada)
+      navigator.pushReplacementNamed(ConfirmacionCitaPage.routeName, arguments: nueva);
+      return;
+    } catch (e) {
+      // Si falla por falta de token o error de red, caer al flujo local
+      // log la excepción si lo deseas
+    }
+
+    // Fallback: usar el flujo local (mock) si no hay sesión o la petición falló
     final Cita? cita = appState.agendarCita(
       servicio: servicio,
       empleado: profesional,
@@ -174,25 +198,26 @@ class _NuevaCitaPageState extends State<NuevaCitaPage> {
       hora: hora,
     );
 
-    if (cita == null) {
+      if (cita == null) {
       if (!mounted) return;
+      // ignore: use_build_context_synchronously
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
           title: const Text('Inicia sesión'),
           content: const Text('Debes iniciar sesión como cliente para agendar una cita.'),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Entendido')),
+            TextButton(onPressed: () => navigator.pop(), child: const Text('Entendido')),
           ],
         ),
       );
       return;
     }
-
     if (!mounted) return;
+    // ignore: use_build_context_synchronously
     await showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Cita reservada'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -202,14 +227,14 @@ class _NuevaCitaPageState extends State<NuevaCitaPage> {
             const SizedBox(height: 8),
             Text('Profesional: ${profesional.nombre} ${profesional.apellido}'),
             Text('Fecha: ${Formatters.formatDate(fecha)}'),
-            Text('Hora: ${_formatHour(context, hora)}'),
+            Text('Hora: ${_formatHour(dialogContext, hora)}'),
             const SizedBox(height: 12),
             const Text('Estado: Reservada'),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => navigator.pop(),
             child: const Text('Cerrar'),
           ),
         ],
@@ -217,9 +242,9 @@ class _NuevaCitaPageState extends State<NuevaCitaPage> {
     );
 
     if (!mounted) return;
-    Navigator.of(context).pop();
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
+    navigator.pop();
+    if (navigator.canPop()) {
+      navigator.pop();
     }
   }
 

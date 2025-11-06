@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'app_router.dart';
 import 'application/app_state.dart';
+import 'application/cita_provider.dart';
 import 'core/constants/app_strings.dart';
 import 'injection_container.dart';
 import 'presentation/themes/app_theme.dart';
@@ -19,8 +20,11 @@ class StailenceApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<AppState>(
-      create: (_) => getIt<AppState>(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AppState>(create: (_) => getIt<AppState>()),
+  ChangeNotifierProvider<CitaProvider>(create: (_) => getIt<CitaProvider>()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: AppStrings.appName,
