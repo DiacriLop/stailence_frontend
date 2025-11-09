@@ -84,11 +84,14 @@ class _PerfilPageState extends State<PerfilPage> {
                     },
                     onLogout: isLoggedIn
                         ? () async {
+                            // Capture navigator before awaiting logout to avoid using
+                            // BuildContext across async gaps.
+                            final NavigatorState navigator = Navigator.of(context);
                             await context.read<AppState>().logout();
                             if (!mounted) {
                               return;
                             }
-                            Navigator.of(context).pushNamedAndRemoveUntil(
+                            navigator.pushNamedAndRemoveUntil(
                               LoginPage.routeName,
                               (route) => false,
                             );

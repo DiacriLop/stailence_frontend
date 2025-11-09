@@ -5,6 +5,8 @@ import 'presentation/pages/auth/register_page.dart';
 import 'presentation/pages/citas/cita_detalle_page.dart';
 import 'presentation/pages/citas/citas_page.dart';
 import 'presentation/pages/citas/nueva_cita_page.dart';
+import 'presentation/pages/citas/confirmacion_cita_page.dart';
+import 'data/models/cita_model.dart';
 import 'domain/entities/servicio.dart';
 import 'presentation/pages/home/home_page.dart';
 import 'presentation/pages/home/tab_admin.dart';
@@ -53,6 +55,12 @@ class AppRouter {
           return _buildPage(const _RouteErrorPage(message: 'Información de cita no disponible'));
         }
         return _buildPage(NuevaCitaPage(arguments: nuevaCitaArgs));
+      case ConfirmacionCitaPage.routeName:
+        final CitaModel? cita = settings.arguments as CitaModel?;
+        if (cita == null) {
+          return _buildPage(const _RouteErrorPage(message: 'Información de la cita no disponible'));
+        }
+        return _buildPage(ConfirmacionCitaPage(cita: cita));
       case ServiciosPage.routeName:
         return _buildPage(const ServiciosPage());
       case NegociosPage.routeName:

@@ -1,17 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/text_styles.dart';
-import 'nueva_cita_page.dart';
+import '../servicios/servicios_page.dart';
+import '../../../application/cita_provider.dart';
+import '../../../data/models/cita_model.dart';
+import 'cita_detalle_page.dart';
 
-class CitasPage extends StatelessWidget {
+class CitasPage extends StatefulWidget {
   const CitasPage({super.key});
 
   static const String routeName = '/citas';
 
   @override
+  State<CitasPage> createState() => _CitasPageState();
+}
+
+class _CitasPageState extends State<CitasPage> {
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      // Load citas from provider
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<CitaProvider>().cargarCitas();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final CitaProvider citaProvider = context.watch<CitaProvider>();
+    final bool isLoading = citaProvider.isLoading;
+    final String? error = citaProvider.error;
+    final List<CitaModel> citas = citaProvider.citas;
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -28,15 +56,19 @@ class CitasPage extends StatelessWidget {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            _AppointmentList(appointments: _upcomingAppointments, emptyMessage: 'No tienes próximas citas.'),
-            _AppointmentList(appointments: _completedAppointments, emptyMessage: 'Aún no hay citas completadas.'),
-            _AppointmentList(appointments: _cancelledAppointments, emptyMessage: 'Aún no hay citas canceladas.'),
-          ],
-        ),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : error != null
+                ? Center(child: Text(error, style: AppTextStyles.body))
+                : TabBarView(
+                    children: [
+                      _CitasList(citas: citas.where((c) => c.estado.name == 'reservada').toList(), emptyMessage: 'No tienes próximas citas.'),
+                      _CitasList(citas: citas.where((c) => c.estado.name == 'completada').toList(), emptyMessage: 'Aún no hay citas completadas.'),
+                      _CitasList(citas: citas.where((c) => c.estado.name == 'cancelada').toList(), emptyMessage: 'Aún no hay citas canceladas.'),
+                    ],
+                  ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => Navigator.of(context).pushNamed(NuevaCitaPage.routeName),
+          onPressed: () => Navigator.of(context).pushNamed(ServiciosPage.routeName),
           icon: const Icon(Icons.add),
           label: const Text('Reservar cita'),
         ),
@@ -45,150 +77,70 @@ class CitasPage extends StatelessWidget {
   }
 }
 
-class _AppointmentList extends StatelessWidget {
-  const _AppointmentList({
-    required this.appointments,
-    required this.emptyMessage,
-  });
+class _CitasList extends StatelessWidget {
+  const _CitasList({required this.citas, required this.emptyMessage});
 
-  final List<_AppointmentItem> appointments;
+  final List<CitaModel> citas;
   final String emptyMessage;
 
   @override
   Widget build(BuildContext context) {
-    if (appointments.isEmpty) {
-      return Center(
-        child: Text(emptyMessage, style: AppTextStyles.body),
-      );
+    if (citas.isEmpty) {
+      return Center(child: Text(emptyMessage, style: AppTextStyles.body));
     }
-
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 96),
-      itemCount: appointments.length,
-      itemBuilder: (BuildContext context, int index) {
-        final appointment = appointments[index];
-        return _AppointmentTile(item: appointment);
+      itemCount: citas.length,
+      itemBuilder: (context, index) {
+        final c = citas[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: ListTile(
+            title: Text('${c.fechaEstimada.toLocal().toString().split(' ')[0]} · ${c.horaEstipulada}', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+            subtitle: Text('Estado: ${c.estado.name}'),
+            onTap: () {
+              Navigator.of(context).pushNamed(CitaDetallePage.routeName);
+            },
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) async {
+                if (value == 'detalles') {
+                  Navigator.of(context).pushNamed(CitaDetallePage.routeName);
+                } else if (value == 'cancelar') {
+                  // capture provider and messenger before awaiting to avoid using
+                  // BuildContext across async gaps
+                  final CitaProvider provider = context.read<CitaProvider>();
+                  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+                  final bool? confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Confirmar'),
+                      content: const Text('¿Deseas cancelar esta cita?'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('No')),
+                        TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Sí')),
+                      ],
+                    ),
+                  );
+                  if (confirm != true) return;
+                  try {
+                    await provider.cancelarCita(c.id);
+                    messenger.showSnackBar(const SnackBar(content: Text('Cita cancelada')));
+                  } catch (e) {
+                    messenger.showSnackBar(SnackBar(content: Text('Error al cancelar: ${e.toString()}')));
+                  }
+                }
+              },
+              itemBuilder: (_) => <PopupMenuEntry<String>>[
+                const PopupMenuItem(value: 'detalles', child: Text('Detalles')),
+                if (c.estado.name == 'reservada') const PopupMenuItem(value: 'cancelar', child: Text('Cancelar')),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
 }
 
-class _AppointmentTile extends StatelessWidget {
-  const _AppointmentTile({required this.item});
 
-  final _AppointmentItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(item.date, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: item.statusColor.withOpacity(0.14),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    item.status,
-                    style: TextStyle(color: item.statusColor, fontWeight: FontWeight.w600, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(item.business, style: AppTextStyles.subtitle),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const Icon(Icons.location_on, size: 16, color: AppColors.textSecondary),
-                const SizedBox(width: 4),
-                Expanded(child: Text(item.location, style: AppTextStyles.body)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(item.services, style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    child: const Text('Detalles'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('Reprogramar'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AppointmentItem {
-  const _AppointmentItem({
-    required this.date,
-    required this.business,
-    required this.location,
-    required this.services,
-    required this.status,
-    required this.statusColor,
-  });
-
-  final String date;
-  final String business;
-  final String location;
-  final String services;
-  final String status;
-  final Color statusColor;
-}
-
-const List<_AppointmentItem> _upcomingAppointments = [
-  _AppointmentItem(
-    date: '20 Oct 2025 · 11:00 AM',
-    business: 'The Gentleman’s Den',
-    location: 'Carrera 45 # 12-34 · Tuluá, Col',
-    services: 'Corte de pelo · Barbería · Spa facial',
-    status: 'Pendiente',
-    statusColor: AppColors.primary,
-  ),
-];
-
-const List<_AppointmentItem> _completedAppointments = [
-  _AppointmentItem(
-    date: '05 Sep 2025 · 03:00 PM',
-    business: 'Classic Cuts Barber',
-    location: 'Av. Central 23-55 · Tuluá, Col',
-    services: 'Afeitado clásico · Mascarilla',
-    status: 'Completado',
-    statusColor: AppColors.success,
-  ),
-];
-
-const List<_AppointmentItem> _cancelledAppointments = [
-  _AppointmentItem(
-    date: '14 Ago 2025 · 10:30 AM',
-    business: 'Urban Style Studio',
-    location: 'Calle 10 # 5-20 · Tuluá, Col',
-    services: 'Coloración · Tratamiento capilar',
-    status: 'Cancelado',
-    statusColor: AppColors.error,
-  ),
-];
