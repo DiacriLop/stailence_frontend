@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -23,7 +22,9 @@ class UsuarioService {
     );
 
     if (response.statusCode == 200) {
-      return UsuarioModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      return UsuarioModel.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
     } else {
       throw const ServerFailure('Error al cargar el perfil');
     }
@@ -49,7 +50,9 @@ class UsuarioService {
     );
 
     if (response.statusCode == 200) {
-      return UsuarioModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      return UsuarioModel.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
     } else {
       throw const ServerFailure('Error al actualizar el perfil');
     }

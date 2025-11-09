@@ -13,7 +13,8 @@ class NegociosMock {
         telefono: '+57 315 234 5678',
         correo: 'contacto@captainbarbershop.co',
         horarioGeneral: 'Lun - Sáb · 8:00 a.m. - 8:00 p.m.',
-        imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
+        imageUrl:
+            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
         serviciosDestacados: [
           Servicio(
             id: 101,
@@ -45,7 +46,8 @@ class NegociosMock {
         telefono: '+57 312 000 1122',
         correo: 'reservas@urbanstyle.com',
         horarioGeneral: 'Todos los días · 9:00 a.m. - 7:00 p.m.',
-        imageUrl: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80',
+        imageUrl:
+            'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80',
         serviciosDestacados: [
           Servicio(
             id: 201,
@@ -70,7 +72,8 @@ class NegociosMock {
         telefono: '+57 300 998 8877',
         correo: 'hola@spaglam.co',
         horarioGeneral: 'Mié - Dom · 10:00 a.m. - 9:00 p.m.',
-        imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80',
+        imageUrl:
+            'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80',
         serviciosDestacados: [
           Servicio(
             id: 301,
