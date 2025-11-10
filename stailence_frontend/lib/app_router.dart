@@ -21,6 +21,7 @@ import 'presentation/pages/pagos/pagos_page.dart';
 import 'presentation/pages/perfil/perfil_page.dart';
 import 'presentation/pages/servicios/servicio_detalle_page.dart';
 import 'presentation/pages/servicios/servicios_page.dart';
+import 'presentation/pages/servicios/servicios_loader_page.dart';
 import 'presentation/pages/splash/splash_page.dart';
 
 class AppRouter {
@@ -68,7 +69,7 @@ class AppRouter {
         }
         return _buildPage(ConfirmacionCitaPage(cita: cita));
       case ServiciosPage.routeName:
-        return _buildPage(const ServiciosPage());
+        return _buildPage(const ServiciosLoaderPage());
       case NegociosPage.routeName:
         return _buildPage(const NegociosLoaderPage());
       case NegocioDetallePage.routeName:

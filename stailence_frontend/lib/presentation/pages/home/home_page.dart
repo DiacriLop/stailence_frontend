@@ -12,6 +12,9 @@ import '../negocios/negocio_detalle_page.dart';
 import '../negocios/negocios_page.dart';
 import '../perfil/perfil_page.dart';
 import '../servicios/servicios_page.dart';
+import '../../../injection_container.dart';
+import '../../../data/repositories/servicio_repository.dart';
+import '../../../domain/entities/servicio.dart';
 import 'ia_recomienda_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -56,7 +59,9 @@ class _BusinessSection extends StatelessWidget {
             itemBuilder: (BuildContext context, int index) {
               final Negocio negocio = businesses[index];
               return Padding(
-                padding: EdgeInsets.only(right: index == businesses.length - 1 ? 0 : 16),
+                padding: EdgeInsets.only(
+                  right: index == businesses.length - 1 ? 0 : 16,
+                ),
                 child: _BusinessCard(
                   negocio: negocio,
                   onTap: () => onOpenDetail(negocio),
@@ -99,13 +104,12 @@ class _BusinessCard extends StatelessWidget {
           children: [
             if (negocio.imageUrl != null)
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: Image.network(
-                    negocio.imageUrl!,
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.network(negocio.imageUrl!, fit: BoxFit.cover),
                 ),
               ),
             Padding(
@@ -127,12 +131,18 @@ class _BusinessCard extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.location_on, size: 18, color: AppColors.textSecondary),
+                        const Icon(
+                          Icons.location_on,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
                             negocio.direccion!,
-                            style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                            style: AppTextStyles.body.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -144,7 +154,11 @@ class _BusinessCard extends StatelessWidget {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Icon(Icons.schedule, size: 18, color: AppColors.primary),
+                        const Icon(
+                          Icons.schedule,
+                          size: 18,
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
@@ -184,7 +198,8 @@ class _HomePageState extends State<HomePage> {
         onViewAllBusinesses: _openBusinessList,
         onOpenBusinessDetail: _openBusinessDetail,
       ),
-      const ServiciosPage(),
+      // Load services from backend with a mock fallback
+      _ServiciosTab(),
       const IARecomiendaPage(),
       const PerfilPage(),
     ];
@@ -214,10 +229,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openBusinessDetail(Negocio negocio) {
-    Navigator.of(context).pushNamed(
-      NegocioDetallePage.routeName,
-      arguments: negocio,
-    );
+    Navigator.of(
+      context,
+    ).pushNamed(NegocioDetallePage.routeName, arguments: negocio);
   }
 
   @override
@@ -244,6 +258,57 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+}
+
+class _ServiciosTab extends StatefulWidget {
+  @override
+  State<_ServiciosTab> createState() => _ServiciosTabState();
+}
+
+class _ServiciosTabState extends State<_ServiciosTab> {
+  bool _loading = true;
+  List<Servicio> _services = <Servicio>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+    });
+    try {
+      final ServicioRepository repo = getIt<ServicioRepository>();
+      final List<Servicio> servicios = await repo.obtenerServicios();
+      if (servicios.isNotEmpty) {
+        _services = servicios;
+      } else {
+        // fallback to mocks from AppState
+        final appState = context.read<AppState>();
+        _services = appState.allServices;
+      }
+    } catch (_) {
+      // on any error use mock data so the UI still shows services
+      final appState = context.read<AppState>();
+      _services = appState.allServices;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return ServiciosPage(servicios: _services);
   }
 }
 
@@ -347,11 +412,16 @@ class _NavIcon extends StatelessWidget {
         width: 52,
         height: 52,
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.surface.withOpacity(0.18),
+          color: selected
+              ? AppColors.primary
+              : AppColors.surface.withOpacity(0.18),
           shape: BoxShape.circle,
           border: selected
               ? null
-              : Border.all(color: AppColors.primary.withOpacity(0.45), width: 1.4),
+              : Border.all(
+                  color: AppColors.primary.withOpacity(0.45),
+                  width: 1.4,
+                ),
           boxShadow: [
             if (selected)
               BoxShadow(
@@ -361,7 +431,11 @@ class _NavIcon extends StatelessWidget {
               ),
           ],
         ),
-        child: Icon(icon, color: selected ? Colors.white : AppColors.primary, size: 24),
+        child: Icon(
+          icon,
+          color: selected ? Colors.white : AppColors.primary,
+          size: 24,
+        ),
       );
     }
 
@@ -387,7 +461,8 @@ class _HomeDashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppState appState = context.watch<AppState>();
     final String userName = appState.currentUser != null
-        ? '${appState.currentUser!.nombre} ${appState.currentUser!.apellido}'.trim()
+        ? '${appState.currentUser!.nombre} ${appState.currentUser!.apellido}'
+              .trim()
         : 'Invitado';
 
     final List<_Category> categories = const [
@@ -418,7 +493,10 @@ class _HomeDashboardView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Header(onViewAllServices: onViewAllServices, displayName: userName),
+              _Header(
+                onViewAllServices: onViewAllServices,
+                displayName: userName,
+              ),
               const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),

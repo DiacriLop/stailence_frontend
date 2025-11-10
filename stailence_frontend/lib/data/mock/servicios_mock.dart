@@ -10,7 +10,7 @@ class ServiciosMock {
         nombre: 'Corte premium con lavado',
         duracion: 45,
         precio: 45000,
-        idNegocio: 1,
+        idNegocio: 100,
         categoria: 'Cortes',
       ),
       Servicio(
@@ -18,7 +18,7 @@ class ServiciosMock {
         nombre: 'Barba clásica con tratamiento',
         duracion: 40,
         precio: 38000,
-        idNegocio: 1,
+        idNegocio: 100,
         categoria: 'Barbería',
       ),
       Servicio(
@@ -26,7 +26,7 @@ class ServiciosMock {
         nombre: 'Paquete spa facial masculino',
         duracion: 60,
         precio: 65000,
-        idNegocio: 1,
+        idNegocio: 100,
         categoria: 'Spa',
       ),
       Servicio(
@@ -34,7 +34,7 @@ class ServiciosMock {
         nombre: 'Coloración balayage',
         duracion: 120,
         precio: 180000,
-        idNegocio: 2,
+        idNegocio: 200,
         categoria: 'Coloración',
       ),
       Servicio(
@@ -42,7 +42,7 @@ class ServiciosMock {
         nombre: 'Peinado para eventos',
         duracion: 75,
         precio: 85000,
-        idNegocio: 2,
+        idNegocio: 200,
         categoria: 'Peinados',
       ),
       Servicio(
@@ -50,7 +50,7 @@ class ServiciosMock {
         nombre: 'Tratamiento capilar nutritivo',
         duracion: 50,
         precio: 90000,
-        idNegocio: 2,
+        idNegocio: 200,
         categoria: 'Tratamientos',
       ),
       Servicio(
@@ -58,7 +58,7 @@ class ServiciosMock {
         nombre: 'Masaje relajante',
         duracion: 60,
         precio: 90000,
-        idNegocio: 3,
+        idNegocio: 300,
         categoria: 'Spa',
       ),
       Servicio(
@@ -66,7 +66,7 @@ class ServiciosMock {
         nombre: 'Spa de manos y pies',
         duracion: 50,
         precio: 70000,
-        idNegocio: 3,
+        idNegocio: 300,
         categoria: 'Spa',
       ),
       Servicio(
@@ -74,7 +74,7 @@ class ServiciosMock {
         nombre: 'Limpieza facial profunda',
         duracion: 55,
         precio: 75000,
-        idNegocio: 3,
+        idNegocio: 300,
         categoria: 'Tratamientos',
       ),
     ];

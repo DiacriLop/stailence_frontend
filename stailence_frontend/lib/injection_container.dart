@@ -58,7 +58,10 @@ class InjectionContainer {
     );
 
     getIt.registerLazySingleton<ServicioRepository>(
-      () => ServicioRepository(service: getIt<ServicioService>()),
+      () => ServicioRepository(
+        service: getIt<ServicioService>(),
+        authRepository: getIt<AuthRepository>(),
+      ),
     );
 
     getIt.registerLazySingleton<NegocioRepository>(

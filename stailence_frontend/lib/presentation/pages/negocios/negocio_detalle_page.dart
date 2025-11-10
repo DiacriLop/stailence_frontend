@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/text_styles.dart';
+import '../../../data/repositories/servicio_repository.dart';
 import '../../../domain/entities/negocio.dart';
 import '../../../domain/entities/servicio.dart';
+import '../../../injection_container.dart';
+import '../../../application/app_state.dart';
 import '../../widgets/empty_state.dart';
 import '../servicios/servicio_detalle_page.dart';
 
@@ -51,25 +55,40 @@ class NegocioDetallePage extends StatelessWidget {
                           color: AppColors.primary.withOpacity(0.18),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.store_mall_directory_outlined, size: 32, color: AppColors.primary),
+                        child: const Icon(
+                          Icons.store_mall_directory_outlined,
+                          size: 32,
+                          color: AppColors.primary,
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(negocio.nombre, style: AppTextStyles.subtitle.copyWith(fontSize: 22)),
+                            Text(
+                              negocio.nombre,
+                              style: AppTextStyles.subtitle.copyWith(
+                                fontSize: 22,
+                              ),
+                            ),
                             if (negocio.horarioGeneral != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 6),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.schedule, size: 16, color: AppColors.primary),
+                                    const Icon(
+                                      Icons.schedule,
+                                      size: 16,
+                                      color: AppColors.primary,
+                                    ),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
                                         negocio.horarioGeneral!,
-                                        style: AppTextStyles.body.copyWith(color: AppColors.primary),
+                                        style: AppTextStyles.body.copyWith(
+                                          color: AppColors.primary,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -123,72 +142,128 @@ class NegocioDetallePage extends StatelessWidget {
                   ),
                 ],
               ),
-              child: negocio.serviciosDestacados == null || negocio.serviciosDestacados!.isEmpty
-                  ? const EmptyState(
+              child: FutureBuilder<List<Servicio>>(
+                future: getIt<ServicioRepository>().obtenerServiciosPorNegocio(
+                  negocio.id,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  // If API returned error or empty, try mock fallback from AppState
+                  List<Servicio> servicios = <Servicio>[];
+                  bool fromApi = false;
+
+                  if (snapshot.hasData &&
+                      snapshot.data != null &&
+                      snapshot.data!.isNotEmpty) {
+                    servicios = snapshot.data!;
+                    fromApi = true;
+                  }
+
+                  if (!fromApi) {
+                    // use mock data from AppState as fallback so the UI still shows services
+                    try {
+                      final AppState appState = context.read<AppState>();
+                      servicios = appState.allServices
+                          .where((Servicio s) => s.idNegocio == negocio.id)
+                          .toList();
+                    } catch (_) {
+                      servicios = <Servicio>[];
+                    }
+                  }
+
+                  if (snapshot.hasError && servicios.isEmpty) {
+                    return const EmptyState(
+                      icon: Icons.error_outline,
+                      title: 'Error al cargar servicios',
+                      message:
+                          'No pudimos cargar los servicios de este negocio.',
+                    );
+                  }
+
+                  if (servicios.isEmpty) {
+                    return const EmptyState(
                       icon: Icons.content_cut,
-                      title: 'Sin servicios cargados',
-                      message: 'Cuando registremos los servicios de este negocio los verás aquí.',
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(negocio.serviciosDestacados!.length, (index) {
-                        final Servicio service = negocio.serviciosDestacados![index];
-                        final bool isLast = index == negocio.serviciosDestacados!.length - 1;
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(18),
-                          onTap: () => Navigator.of(context).pushNamed(
-                            ServicioDetallePage.routeName,
-                            arguments: service,
+                      title: 'Sin servicios disponibles',
+                      message:
+                          'Este negocio aún no tiene servicios registrados.',
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: List.generate(servicios.length, (index) {
+                      final Servicio service = servicios[index];
+                      final bool isLast = index == servicios.length - 1;
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () => Navigator.of(context).pushNamed(
+                          ServicioDetallePage.routeName,
+                          arguments: service,
+                        ),
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
                           ),
-                          child: Container(
-                            margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 38,
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withOpacity(0.16),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.content_cut, color: AppColors.primary, size: 18),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        service.nombre,
-                                        style: AppTextStyles.body.copyWith(
-                                          color: AppColors.textPrimary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${service.duracion} min',
-                                        style: AppTextStyles.body,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  _formatCurrency(service.precio),
-                                  style: AppTextStyles.subtitle.copyWith(color: AppColors.primary, fontSize: 16),
-                                ),
-                              ],
-                            ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: AppColors.border),
                           ),
-                        );
-                      }),
-                    ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.16),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.content_cut,
+                                  color: AppColors.primary,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      service.nombre,
+                                      style: AppTextStyles.body.copyWith(
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${service.duracion} min',
+                                      style: AppTextStyles.body,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                _formatCurrency(service.precio),
+                                style: AppTextStyles.subtitle.copyWith(
+                                  color: AppColors.primary,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 24),
             Text('Ubicación', style: AppTextStyles.subtitle),
@@ -204,7 +279,10 @@ class NegocioDetallePage extends StatelessWidget {
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [AppColors.primary.withOpacity(0.2), AppColors.primary.withOpacity(0.05)],
+                          colors: [
+                            AppColors.primary.withOpacity(0.2),
+                            AppColors.primary.withOpacity(0.05),
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -214,9 +292,19 @@ class NegocioDetallePage extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.map_outlined, color: AppColors.primary, size: 40),
+                          Icon(
+                            Icons.map_outlined,
+                            color: AppColors.primary,
+                            size: 40,
+                          ),
                           SizedBox(height: 8),
-                          Text('Mapa no disponible', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                          Text(
+                            'Mapa no disponible',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -230,19 +318,23 @@ class NegocioDetallePage extends StatelessWidget {
     );
   }
 
-String _formatCurrency(double value) {
-  final intValue = value.round();
-  final String digits = intValue.toString();
-  final String formatted = digits.replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-    (Match match) => '${match[1]}.',
-  );
-  return 'COP $formatted';
-}
+  String _formatCurrency(double value) {
+    final intValue = value.round();
+    final String digits = intValue.toString();
+    final String formatted = digits.replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (Match match) => '${match[1]}.',
+    );
+    return 'COP $formatted';
+  }
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label, required this.value});
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   final IconData icon;
   final String label;
@@ -267,7 +359,10 @@ class _InfoRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+              Text(
+                label,
+                style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 4),
               Text(value, style: AppTextStyles.body),
             ],

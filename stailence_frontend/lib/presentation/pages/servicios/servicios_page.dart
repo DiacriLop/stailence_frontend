@@ -12,9 +12,12 @@ import '../../../domain/entities/usuario.dart';
 import 'servicio_detalle_page.dart';
 
 class ServiciosPage extends StatefulWidget {
-  const ServiciosPage({super.key});
+  const ServiciosPage({super.key, required this.servicios, this.idNegocio});
 
   static const String routeName = '/servicios';
+
+  final List<Servicio> servicios;
+  final int? idNegocio;
 
   @override
   State<ServiciosPage> createState() => _ServiciosPageState();
@@ -29,10 +32,29 @@ class _ServiciosPageState extends State<ServiciosPage> {
     final AppState appState = context.watch<AppState>();
     final List<String> categories = appState.serviceCategories;
     final List<Usuario> employees = appState.allEmployees;
-    final List<Servicio> servicios = appState.serviciosFiltrados(
-      categoria: _selectedCategory,
-      empleadoId: _selectedEmployeeId,
-    );
+
+    // Filtrar servicios por negocio si se especifica
+    List<Servicio> serviciosFiltrados = widget.servicios;
+    if (widget.idNegocio != null) {
+      serviciosFiltrados = serviciosFiltrados
+          .where((s) => s.idNegocio == widget.idNegocio)
+          .toList();
+    }
+
+    // Aplicar filtros de categoría y empleado
+    if (_selectedCategory != 'Todos') {
+      serviciosFiltrados = serviciosFiltrados
+          .where((s) => s.categoria == _selectedCategory)
+          .toList();
+    }
+    if (_selectedEmployeeId != null) {
+      final serviciosEmpleado = appState.serviciosFiltrados(
+        empleadoId: _selectedEmployeeId,
+      );
+      serviciosFiltrados = serviciosFiltrados
+          .where((s) => serviciosEmpleado.any((se) => se.id == s.id))
+          .toList();
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text(AppStrings.serviciosTitle)),
@@ -41,7 +63,10 @@ class _ServiciosPageState extends State<ServiciosPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Encuentra el servicio ideal para ti', style: AppTextStyles.headline.copyWith(fontSize: 22)),
+            Text(
+              'Encuentra el servicio ideal para ti',
+              style: AppTextStyles.headline.copyWith(fontSize: 22),
+            ),
             const SizedBox(height: 16),
             Text('Filtrar por categoría', style: AppTextStyles.subtitle),
             const SizedBox(height: 12),
@@ -69,17 +94,24 @@ class _ServiciosPageState extends State<ServiciosPage> {
             const SizedBox(height: 24),
             Text('Servicios disponibles', style: AppTextStyles.subtitle),
             const SizedBox(height: 12),
-            if (servicios.isEmpty)
+            if (serviciosFiltrados.isEmpty)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 32,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.elevatedSurface,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.search_off_outlined, size: 48, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.search_off_outlined,
+                      size: 48,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       'No encontramos servicios con los filtros seleccionados.',
@@ -93,11 +125,12 @@ class _ServiciosPageState extends State<ServiciosPage> {
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: servicios.length,
+                itemCount: serviciosFiltrados.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 16),
                 itemBuilder: (BuildContext context, int index) {
-                  final Servicio servicio = servicios[index];
-                  final List<Usuario> profesionales = appState.empleadosParaServicio(servicio.id);
+                  final Servicio servicio = serviciosFiltrados[index];
+                  final List<Usuario> profesionales = appState
+                      .empleadosParaServicio(servicio.id);
                   return _ServiceCard(
                     servicio: servicio,
                     profesionales: profesionales,
@@ -112,7 +145,9 @@ class _ServiciosPageState extends State<ServiciosPage> {
   }
 
   void _openServiceDetail(BuildContext context, Servicio servicio) {
-    Navigator.of(context).pushNamed(ServicioDetallePage.routeName, arguments: servicio);
+    Navigator.of(
+      context,
+    ).pushNamed(ServicioDetallePage.routeName, arguments: servicio);
   }
 }
 
@@ -166,17 +201,24 @@ class _EmployeeDropdown extends StatelessWidget {
     return DropdownButtonFormField<int?>(
       value: selectedEmployeeId,
       decoration: const InputDecoration(
-        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(18))),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(18)),
+        ),
         prefixIcon: Icon(Icons.person_outline),
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       hint: const Text('Todos los profesionales'),
       items: <DropdownMenuItem<int?>>[
-        const DropdownMenuItem<int?>(value: null, child: Text('Todos los profesionales')),
-        ...employees.map((Usuario employee) => DropdownMenuItem<int?>(
-              value: employee.id,
-              child: Text('${employee.nombre} ${employee.apellido}'),
-            )),
+        const DropdownMenuItem<int?>(
+          value: null,
+          child: Text('Todos los profesionales'),
+        ),
+        ...employees.map(
+          (Usuario employee) => DropdownMenuItem<int?>(
+            value: employee.id,
+            child: Text('${employee.nombre} ${employee.apellido}'),
+          ),
+        ),
       ],
       onChanged: onChanged,
     );
@@ -240,16 +282,23 @@ class _ServiceCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Duración: ${servicio.duracion} min',
-                          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           Formatters.formatCurrency(servicio.precio),
-                          style: AppTextStyles.subtitle.copyWith(color: AppColors.primary),
+                          style: AppTextStyles.subtitle.copyWith(
+                            color: AppColors.primary,
+                          ),
                         ),
                         if (servicio.categoria != null) ...[
                           const SizedBox(height: 4),
-                          Text('Categoría: ${servicio.categoria}', style: AppTextStyles.body),
+                          Text(
+                            'Categoría: ${servicio.categoria}',
+                            style: AppTextStyles.body,
+                          ),
                         ],
                       ],
                     ),
@@ -259,7 +308,11 @@ class _ServiceCard extends StatelessWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  const Icon(Icons.people_alt_outlined, size: 18, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.people_alt_outlined,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -274,8 +327,13 @@ class _ServiceCard extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
                     child: const Text('Agendar'),
                   ),
