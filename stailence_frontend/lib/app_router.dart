@@ -12,7 +12,7 @@ import 'presentation/pages/home/home_page.dart';
 import 'presentation/pages/home/tab_admin.dart';
 import 'presentation/pages/home/tab_client.dart';
 import 'presentation/pages/home/tab_empleado.dart';
-import 'data/mock/negocios_mock.dart';
+import 'presentation/pages/negocios/negocios_loader_page.dart';
 import 'domain/entities/negocio.dart';
 import 'presentation/pages/negocios/negocio_detalle_page.dart';
 import 'presentation/pages/negocios/negocios_page.dart';
@@ -52,29 +52,39 @@ class AppRouter {
         final NuevaCitaPageArguments? nuevaCitaArgs =
             settings.arguments as NuevaCitaPageArguments?;
         if (nuevaCitaArgs == null) {
-          return _buildPage(const _RouteErrorPage(message: 'Información de cita no disponible'));
+          return _buildPage(
+            const _RouteErrorPage(message: 'Información de cita no disponible'),
+          );
         }
         return _buildPage(NuevaCitaPage(arguments: nuevaCitaArgs));
       case ConfirmacionCitaPage.routeName:
         final CitaModel? cita = settings.arguments as CitaModel?;
         if (cita == null) {
-          return _buildPage(const _RouteErrorPage(message: 'Información de la cita no disponible'));
+          return _buildPage(
+            const _RouteErrorPage(
+              message: 'Información de la cita no disponible',
+            ),
+          );
         }
         return _buildPage(ConfirmacionCitaPage(cita: cita));
       case ServiciosPage.routeName:
         return _buildPage(const ServiciosPage());
       case NegociosPage.routeName:
-        return _buildPage(NegociosPage(negocios: NegociosMock.build()));
+        return _buildPage(const NegociosLoaderPage());
       case NegocioDetallePage.routeName:
         final Negocio? negocio = settings.arguments as Negocio?;
         if (negocio == null) {
-          return _buildPage(const _RouteErrorPage(message: 'Negocio no disponible'));
+          return _buildPage(
+            const _RouteErrorPage(message: 'Negocio no disponible'),
+          );
         }
         return _buildPage(NegocioDetallePage(negocio: negocio));
       case ServicioDetallePage.routeName:
         final Servicio? servicio = settings.arguments as Servicio?;
         if (servicio == null) {
-          return _buildPage(const _RouteErrorPage(message: 'Servicio no disponible'));
+          return _buildPage(
+            const _RouteErrorPage(message: 'Servicio no disponible'),
+          );
         }
         return _buildPage(ServicioDetallePage(servicio: servicio));
       case NotificacionesPage.routeName:

@@ -8,10 +8,12 @@ import 'core/constants/api_endpoints.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/cita_repository.dart';
 import 'data/repositories/servicio_repository.dart';
+import 'data/repositories/negocio_repository.dart';
 import 'data/repositories/usuario_repository.dart';
 import 'data/services/auth_service.dart';
 import 'data/services/cita_service.dart';
 import 'data/services/servicio_service.dart';
+import 'data/services/negocio_service.dart';
 import 'data/services/usuario_service.dart';
 import 'application/cita_provider.dart';
 
@@ -22,23 +24,26 @@ class InjectionContainer {
 
   static Future<void> init() async {
     // External Dependencies
-    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final SharedPreferences sharedPreferences =
+        await SharedPreferences.getInstance();
     const FlutterSecureStorage secureStorage = FlutterSecureStorage();
     final http.Client client = http.Client();
 
     // Services
-    getIt.registerLazySingleton<AuthService>(
-      () => AuthService(client: client),
-    );
-    
+    getIt.registerLazySingleton<AuthService>(() => AuthService(client: client));
+
     getIt.registerLazySingleton<ServicioService>(
       () => ServicioService(client: client, baseUrl: ApiEndpoints.baseUrl),
     );
-    
+
+    getIt.registerLazySingleton<NegocioService>(
+      () => NegocioService(client: client, baseUrl: ApiEndpoints.baseUrl),
+    );
+
     getIt.registerLazySingleton<CitaService>(
       () => CitaService(client: client, baseUrl: ApiEndpoints.baseUrl),
     );
-    
+
     getIt.registerLazySingleton<UsuarioService>(
       () => UsuarioService(client: client, baseUrl: ApiEndpoints.baseUrl),
     );
@@ -56,6 +61,13 @@ class InjectionContainer {
       () => ServicioRepository(service: getIt<ServicioService>()),
     );
 
+    getIt.registerLazySingleton<NegocioRepository>(
+      () => NegocioRepository(
+        service: getIt<NegocioService>(),
+        authRepository: getIt<AuthRepository>(),
+      ),
+    );
+
     getIt.registerLazySingleton<CitaRepository>(
       () => CitaRepository(service: getIt<CitaService>()),
     );
@@ -66,9 +78,7 @@ class InjectionContainer {
 
     // App State
     getIt.registerLazySingleton<AppState>(
-      () => AppState(
-        authRepository: getIt<AuthRepository>(),
-      ),
+      () => AppState(authRepository: getIt<AuthRepository>()),
     );
 
     // Providers

@@ -8,5 +8,6 @@ class ApiEndpoints {
   static const String register = '/usuarios/registro';
   static const String servicios = '/servicios';
   static const String citas = '/citas';
+  static const String negocios = '/negocios';
   static const String usuarios = '/usuarios';
 }
