@@ -33,26 +33,49 @@ class _ServiciosPageState extends State<ServiciosPage> {
     final List<String> categories = appState.serviceCategories;
     final List<Usuario> employees = appState.allEmployees;
 
+    // Combine API services (widget.servicios) with mock services (AppState)
+    // Prefer API service data when IDs conflict, but keep mocks to preserve
+    // category/professional assignments.
+    final Map<int, Servicio> mergedById = <int, Servicio>{};
+
+    // Add API services first (they take precedence)
+    for (final Servicio s in widget.servicios) {
+      mergedById[s.id] = s;
+    }
+
+    // Add mock services only if their id is not present from API
+    for (final Servicio s in appState.allServices) {
+      mergedById.putIfAbsent(s.id, () => s);
+    }
+
+    List<Servicio> serviciosFiltrados = mergedById.values.toList();
+
     // Filtrar servicios por negocio si se especifica
-    List<Servicio> serviciosFiltrados = widget.servicios;
     if (widget.idNegocio != null) {
       serviciosFiltrados = serviciosFiltrados
           .where((s) => s.idNegocio == widget.idNegocio)
           .toList();
     }
 
-    // Aplicar filtros de categoría y empleado
+    // Aplicar filtros de categoría
     if (_selectedCategory != 'Todos') {
       serviciosFiltrados = serviciosFiltrados
           .where((s) => s.categoria == _selectedCategory)
           .toList();
     }
+
+    // Aplicar filtro por empleado: basamos el filtro en los servicios asignados
+    // a ese empleado en la base mock (appState.serviciosFiltrados), y mostramos
+    // tanto mocks como servicios API cuyo id esté en ese conjunto.
     if (_selectedEmployeeId != null) {
-      final serviciosEmpleado = appState.serviciosFiltrados(
+      final List<Servicio> serviciosEmpleado = appState.serviciosFiltrados(
         empleadoId: _selectedEmployeeId,
       );
+      final Set<int> servicioIdsEmpleado = serviciosEmpleado
+          .map((s) => s.id)
+          .toSet();
       serviciosFiltrados = serviciosFiltrados
-          .where((s) => serviciosEmpleado.any((se) => se.id == s.id))
+          .where((s) => servicioIdsEmpleado.contains(s.id))
           .toList();
     }
 

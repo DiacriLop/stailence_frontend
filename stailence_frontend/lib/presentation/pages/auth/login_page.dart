@@ -35,8 +35,10 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     final AppState appState = context.read<AppState>();
-    final String? error =
-        await appState.login(correo: _emailController.text.trim(), contrasena: _passwordController.text);
+    final String? error = await appState.login(
+      correo: _emailController.text.trim(),
+      contrasena: _passwordController.text,
+    );
 
     if (!mounted) {
       return;
@@ -103,7 +105,11 @@ class _LoginPageState extends State<LoginPage> {
                       labelText: 'Contraseña',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
                         onPressed: () {
                           setState(() {
                             _obscurePassword = !_obscurePassword;
@@ -125,7 +131,9 @@ class _LoginPageState extends State<LoginPage> {
                   if (error != null) ...[
                     Text(
                       error,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -145,7 +153,9 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: isLoading
                         ? null
                         : () {
-                            Navigator.of(context).pushReplacementNamed(RegisterPage.routeName);
+                            Navigator.of(
+                              context,
+                            ).pushReplacementNamed(RegisterPage.routeName);
                           },
                     child: const Text('¿No tienes cuenta? Regístrate aquí'),
                   ),

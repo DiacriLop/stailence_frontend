@@ -72,7 +72,10 @@ class InjectionContainer {
     );
 
     getIt.registerLazySingleton<CitaRepository>(
-      () => CitaRepository(service: getIt<CitaService>()),
+      () => CitaRepository(
+        service: getIt<CitaService>(),
+        authRepository: getIt<AuthRepository>(),
+      ),
     );
 
     getIt.registerLazySingleton<UsuarioRepository>(

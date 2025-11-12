@@ -47,8 +47,8 @@ class AppRouter {
         return _buildPage(const TabAdmin());
       case CitasPage.routeName:
         return _buildPage(const CitasPage());
-      case CitaDetallePage.routeName:
-        return _buildPage(const CitaDetallePage());
+      //case CitaDetallePage.routeName:
+      //return _buildPage(const CitaDetallePage());
       case NuevaCitaPage.routeName:
         final NuevaCitaPageArguments? nuevaCitaArgs =
             settings.arguments as NuevaCitaPageArguments?;

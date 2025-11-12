@@ -11,11 +11,11 @@ class CitaProvider with ChangeNotifier {
   final CitaRepository citaRepository;
   final AuthRepository authRepository;
 
-  List<CitaModel> _citas = <CitaModel>[];
+  List<Cita> _citas = <Cita>[];
   bool _isLoading = false;
   String? _error;
 
-  List<CitaModel> get citas => _citas;
+  List<Cita> get citas => _citas;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -24,9 +24,7 @@ class CitaProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final String? token = authRepository.token;
-      if (token == null) throw Exception('No auth token available');
-      _citas = await citaRepository.obtenerCitas(token);
+      _citas = await citaRepository.obtenerCitas();
     } catch (e) {
       _error = e.toString();
     } finally {

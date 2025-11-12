@@ -24,7 +24,9 @@ class _PerfilPageState extends State<PerfilPage> {
     final AppState appState = context.watch<AppState>();
     final bool isLoggedIn = appState.isLoggedIn;
     final user = appState.currentUser;
-    final String displayName = user != null ? '${user.nombre} ${user.apellido}'.trim() : 'Invitado';
+    final String displayName = user != null
+        ? '${user.nombre} ${user.apellido}'.trim()
+        : 'Invitado';
     final String displayEmail = user?.correo ?? 'Sin correo';
 
     return Scaffold(
@@ -47,7 +49,10 @@ class _PerfilPageState extends State<PerfilPage> {
             height: 260,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.heroGradientStart, AppColors.heroGradientEnd],
+                colors: [
+                  AppColors.heroGradientStart,
+                  AppColors.heroGradientEnd,
+                ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -86,7 +91,9 @@ class _PerfilPageState extends State<PerfilPage> {
                         ? () async {
                             // Capture navigator before awaiting logout to avoid using
                             // BuildContext across async gaps.
-                            final NavigatorState navigator = Navigator.of(context);
+                            final NavigatorState navigator = Navigator.of(
+                              context,
+                            );
                             await context.read<AppState>().logout();
                             if (!mounted) {
                               return;
@@ -109,7 +116,11 @@ class _PerfilPageState extends State<PerfilPage> {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.onEdit, required this.name, required this.email});
+  const _ProfileHeader({
+    required this.onEdit,
+    required this.name,
+    required this.email,
+  });
 
   final VoidCallback onEdit;
   final String name;
@@ -141,7 +152,11 @@ class _ProfileHeader extends StatelessWidget {
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.person_outline, size: 54, color: Colors.white),
+                child: const Icon(
+                  Icons.person_outline,
+                  size: 54,
+                  color: Colors.white,
+                ),
               ),
               Positioned(
                 right: 4,
@@ -162,7 +177,11 @@ class _ProfileHeader extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
               ),
@@ -250,7 +269,11 @@ class _ProfileForm extends StatelessWidget {
             readOnly: true,
             initialValue: '22/11/1996',
             icon: Icons.cake_outlined,
-            trailing: Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+            trailing: Icon(
+              Icons.calendar_today_outlined,
+              size: 18,
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
@@ -263,7 +286,10 @@ class _ProfileForm extends StatelessWidget {
               DropdownMenuItem(value: 'Femenino', child: Text('Femenino')),
               DropdownMenuItem(value: 'Masculino', child: Text('Masculino')),
               DropdownMenuItem(value: 'Otro', child: Text('Otro')),
-              DropdownMenuItem(value: 'Prefiero no decir', child: Text('Prefiero no decir')),
+              DropdownMenuItem(
+                value: 'Prefiero no decir',
+                child: Text('Prefiero no decir'),
+              ),
             ],
             onChanged: onGenderChanged,
           ),
@@ -279,7 +305,10 @@ class _ProfileForm extends StatelessWidget {
             value: receiveNotifications,
             onChanged: onNotificationsChanged,
             contentPadding: EdgeInsets.zero,
-            title: Text('Recibir notificaciones', style: AppTextStyles.subtitle.copyWith(fontSize: 16)),
+            title: Text(
+              'Recibir notificaciones',
+              style: AppTextStyles.subtitle.copyWith(fontSize: 16),
+            ),
             subtitle: Text(
               'Mantente informada sobre promociones y recordatorios de citas.',
               style: AppTextStyles.body,

@@ -6,7 +6,7 @@ import '../../../core/constants/colors.dart';
 import '../../../core/constants/text_styles.dart';
 import '../servicios/servicios_page.dart';
 import '../../../application/cita_provider.dart';
-import '../../../data/models/cita_model.dart';
+import '../../../domain/entities/cita.dart';
 import 'cita_detalle_page.dart';
 
 class CitasPage extends StatefulWidget {
@@ -38,7 +38,7 @@ class _CitasPageState extends State<CitasPage> {
     final CitaProvider citaProvider = context.watch<CitaProvider>();
     final bool isLoading = citaProvider.isLoading;
     final String? error = citaProvider.error;
-    final List<CitaModel> citas = citaProvider.citas;
+    final List<Cita> citas = citaProvider.citas;
 
     return DefaultTabController(
       length: 3,
@@ -59,16 +59,32 @@ class _CitasPageState extends State<CitasPage> {
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
             : error != null
-                ? Center(child: Text(error, style: AppTextStyles.body))
-                : TabBarView(
-                    children: [
-                      _CitasList(citas: citas.where((c) => c.estado.name == 'reservada').toList(), emptyMessage: 'No tienes próximas citas.'),
-                      _CitasList(citas: citas.where((c) => c.estado.name == 'completada').toList(), emptyMessage: 'Aún no hay citas completadas.'),
-                      _CitasList(citas: citas.where((c) => c.estado.name == 'cancelada').toList(), emptyMessage: 'Aún no hay citas canceladas.'),
-                    ],
+            ? Center(child: Text(error, style: AppTextStyles.body))
+            : TabBarView(
+                children: [
+                  _CitasList(
+                    citas: citas
+                        .where((c) => c.estado.name == 'reservada')
+                        .toList(),
+                    emptyMessage: 'No tienes próximas citas.',
                   ),
+                  _CitasList(
+                    citas: citas
+                        .where((c) => c.estado.name == 'completada')
+                        .toList(),
+                    emptyMessage: 'Aún no hay citas completadas.',
+                  ),
+                  _CitasList(
+                    citas: citas
+                        .where((c) => c.estado.name == 'cancelada')
+                        .toList(),
+                    emptyMessage: 'Aún no hay citas canceladas.',
+                  ),
+                ],
+              ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => Navigator.of(context).pushNamed(ServiciosPage.routeName),
+          onPressed: () =>
+              Navigator.of(context).pushNamed(ServiciosPage.routeName),
           icon: const Icon(Icons.add),
           label: const Text('Reservar cita'),
         ),
@@ -80,7 +96,7 @@ class _CitasPageState extends State<CitasPage> {
 class _CitasList extends StatelessWidget {
   const _CitasList({required this.citas, required this.emptyMessage});
 
-  final List<CitaModel> citas;
+  final List<Cita> citas;
   final String emptyMessage;
 
   @override
@@ -95,45 +111,68 @@ class _CitasList extends StatelessWidget {
         final c = citas[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: ListTile(
-            title: Text('${c.fechaEstimada.toLocal().toString().split(' ')[0]} · ${c.horaEstipulada}', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+            title: Text(
+              '${c.fechaEstimada.toLocal().toString().split(' ')[0]} · ${c.horaEstipulada}',
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+            ),
             subtitle: Text('Estado: ${c.estado.name}'),
             onTap: () {
-              Navigator.of(context).pushNamed(CitaDetallePage.routeName);
+              //Navigator.of(context).pushNamed(CitaDetallePage.routeName);
             },
             trailing: PopupMenuButton<String>(
               onSelected: (value) async {
                 if (value == 'detalles') {
-                  Navigator.of(context).pushNamed(CitaDetallePage.routeName);
+                  //Navigator.of(context).pushNamed(CitaDetallePage.routeName);
                 } else if (value == 'cancelar') {
                   // capture provider and messenger before awaiting to avoid using
                   // BuildContext across async gaps
                   final CitaProvider provider = context.read<CitaProvider>();
-                  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+                  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
+                    context,
+                  );
                   final bool? confirm = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
                       title: const Text('Confirmar'),
                       content: const Text('¿Deseas cancelar esta cita?'),
                       actions: [
-                        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('No')),
-                        TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Sí')),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: const Text('No'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: const Text('Sí'),
+                        ),
                       ],
                     ),
                   );
                   if (confirm != true) return;
                   try {
                     await provider.cancelarCita(c.id);
-                    messenger.showSnackBar(const SnackBar(content: Text('Cita cancelada')));
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text('Cita cancelada')),
+                    );
                   } catch (e) {
-                    messenger.showSnackBar(SnackBar(content: Text('Error al cancelar: ${e.toString()}')));
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Error al cancelar: ${e.toString()}'),
+                      ),
+                    );
                   }
                 }
               },
               itemBuilder: (_) => <PopupMenuEntry<String>>[
                 const PopupMenuItem(value: 'detalles', child: Text('Detalles')),
-                if (c.estado.name == 'reservada') const PopupMenuItem(value: 'cancelar', child: Text('Cancelar')),
+                if (c.estado.name == 'reservada')
+                  const PopupMenuItem(
+                    value: 'cancelar',
+                    child: Text('Cancelar'),
+                  ),
               ],
             ),
           ),
@@ -142,5 +181,3 @@ class _CitasList extends StatelessWidget {
     );
   }
 }
-
-
