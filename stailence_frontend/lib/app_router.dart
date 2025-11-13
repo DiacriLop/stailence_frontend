@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'presentation/pages/auth/login_page.dart';
 import 'presentation/pages/auth/register_page.dart';
-import 'presentation/pages/citas/cita_detalle_page.dart';
 import 'presentation/pages/citas/citas_page.dart';
 import 'presentation/pages/citas/nueva_cita_page.dart';
 import 'presentation/pages/citas/confirmacion_cita_page.dart';
+import 'presentation/pages/citas/empleados_page.dart';
 import 'data/models/cita_model.dart';
 import 'domain/entities/servicio.dart';
 import 'presentation/pages/home/home_page.dart';
@@ -68,6 +68,25 @@ class AppRouter {
           );
         }
         return _buildPage(ConfirmacionCitaPage(cita: cita));
+      case EmpleadosPage.routeName:
+        final Servicio? servicio = settings.arguments as Servicio?;
+        if (servicio == null) {
+          return _buildPage(
+            const _RouteErrorPage(message: 'Servicio no disponible'),
+          );
+        }
+        return _buildPage(EmpleadosPage(servicio: servicio));
+      case '/formulario-cita':
+        final Map<String, dynamic>? args =
+            settings.arguments as Map<String, dynamic>?;
+        if (args == null) {
+          return _buildPage(
+            const _RouteErrorPage(message: 'Información no disponible'),
+          );
+        }
+        // Aquí podría ir un formulario para agendar cita
+        // Por ahora, retornamos a la página anterior
+        return _buildPage(const SplashPage());
       case ServiciosPage.routeName:
         return _buildPage(const ServiciosLoaderPage());
       case NegociosPage.routeName:

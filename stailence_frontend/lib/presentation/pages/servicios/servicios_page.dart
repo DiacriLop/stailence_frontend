@@ -12,12 +12,18 @@ import '../../../domain/entities/usuario.dart';
 import 'servicio_detalle_page.dart';
 
 class ServiciosPage extends StatefulWidget {
-  const ServiciosPage({super.key, required this.servicios, this.idNegocio});
+  const ServiciosPage({
+    super.key,
+    required this.servicios,
+    this.idNegocio,
+    this.paraAgendar = false,
+  });
 
   static const String routeName = '/servicios';
 
   final List<Servicio> servicios;
   final int? idNegocio;
+  final bool paraAgendar;
 
   @override
   State<ServiciosPage> createState() => _ServiciosPageState();
@@ -168,9 +174,15 @@ class _ServiciosPageState extends State<ServiciosPage> {
   }
 
   void _openServiceDetail(BuildContext context, Servicio servicio) {
-    Navigator.of(
-      context,
-    ).pushNamed(ServicioDetallePage.routeName, arguments: servicio);
+    if (widget.paraAgendar) {
+      // Si estamos agendando, ir a la página de empleados
+      Navigator.of(context).pushNamed('/empleados', arguments: servicio);
+    } else {
+      // Si no, ir a detalles del servicio
+      Navigator.of(
+        context,
+      ).pushNamed(ServicioDetallePage.routeName, arguments: servicio);
+    }
   }
 }
 

@@ -15,9 +15,9 @@ class AuthRepository {
     required AuthService authService,
     required FlutterSecureStorage secureStorage,
     required SharedPreferences sharedPreferences,
-  })  : _authService = authService,
-        _secureStorage = secureStorage,
-        _sharedPreferences = sharedPreferences;
+  }) : _authService = authService,
+       _secureStorage = secureStorage,
+       _sharedPreferences = sharedPreferences;
 
   final AuthService _authService;
   final FlutterSecureStorage _secureStorage;
@@ -31,12 +31,19 @@ class AuthRepository {
 
   Future<void> loadPersistedSession() async {
     final String? token = await _secureStorage.read(key: StorageKeys.token);
-    final String? tokenType = await _secureStorage.read(key: StorageKeys.tokenType);
+    final String? tokenType = await _secureStorage.read(
+      key: StorageKeys.tokenType,
+    );
     final String? nombre = _sharedPreferences.getString(StorageKeys.userName);
     final String? correo = _sharedPreferences.getString(StorageKeys.userEmail);
-    final String? apellido = _sharedPreferences.getString(StorageKeys.userLastName);
+    final String? apellido = _sharedPreferences.getString(
+      StorageKeys.userLastName,
+    );
 
-    if (token != null && tokenType != null && nombre != null && correo != null) {
+    if (token != null &&
+        tokenType != null &&
+        nombre != null &&
+        correo != null) {
       _cachedSession = LoginResponse(
         accessToken: token,
         tokenType: tokenType,
@@ -55,20 +62,31 @@ class AuthRepository {
     }
   }
 
-  Future<Usuario> login({required String correo, required String contrasena}) async {
-    final LoginResponse response =
-        await _authService.login(LoginRequest(correo: correo, contrasena: contrasena));
+  Future<Usuario> login({
+    required String correo,
+    required String contrasena,
+  }) async {
+    final LoginResponse response = await _authService.login(
+      LoginRequest(correo: correo, contrasena: contrasena),
+    );
 
     await Future.wait<void>(<Future<void>>[
       _secureStorage.write(key: StorageKeys.token, value: response.accessToken),
-      _secureStorage.write(key: StorageKeys.tokenType, value: response.tokenType),
+      _secureStorage.write(
+        key: StorageKeys.tokenType,
+        value: response.tokenType,
+      ),
       _sharedPreferences.setString(StorageKeys.userName, response.nombre),
       _sharedPreferences.setString(StorageKeys.userEmail, response.correo),
       if (response.apellido != null)
-        _sharedPreferences.setString(StorageKeys.userLastName, response.apellido!),
+        _sharedPreferences.setString(
+          StorageKeys.userLastName,
+          response.apellido!,
+        ),
     ]);
 
-    final String? apellidoPersisted = response.apellido ??
+    final String? apellidoPersisted =
+        response.apellido ??
         _sharedPreferences.getString(StorageKeys.userLastName);
 
     _cachedSession = response;
@@ -103,7 +121,10 @@ class AuthRepository {
 
     _cachedUser = user;
     if (user.apellido.isNotEmpty) {
-      await _sharedPreferences.setString(StorageKeys.userLastName, user.apellido);
+      await _sharedPreferences.setString(
+        StorageKeys.userLastName,
+        user.apellido,
+      );
     }
     _cachedSession = LoginResponse(
       accessToken: '',

@@ -14,32 +14,41 @@ class UsuariosMock {
         rol: UsuarioRol.cliente,
       ),
       const Usuario(
-        id: 2,
+        id: 200,
         nombre: 'Juan',
         apellido: 'Pérez',
         correo: 'juan@stailence.co',
         contrasena: 'barber1',
         rol: UsuarioRol.empleado,
-        idNegocio: 1,
+        idNegocio: 100,
       ),
       const Usuario(
-        id: 3,
+        id: 300,
         nombre: 'Laura',
         apellido: 'Gómez',
         correo: 'laura@stailence.co',
         contrasena: 'stylist',
         rol: UsuarioRol.empleado,
-        idNegocio: 2,
+        idNegocio: 200,
       ),
       const Usuario(
-        id: 4,
+        id: 400,
         nombre: 'Carlos',
         apellido: 'Ríos',
         correo: 'carlos@stailence.co',
         contrasena: 'spa123',
         rol: UsuarioRol.empleado,
-        idNegocio: 3,
+        idNegocio: 300,
       ),
+      /*const Usuario(
+        id: 5,
+        nombre: 'Carlos',
+        apellido: 'Gómez',
+        correo: 'carlos.empleado@demo.com',
+        contrasena: 'empleadoDemo',
+        rol: UsuarioRol.empleado,
+        idNegocio: 100,
+      ),*/
     ];
   }
 }

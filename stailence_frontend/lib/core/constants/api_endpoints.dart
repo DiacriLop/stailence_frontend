@@ -10,4 +10,5 @@ class ApiEndpoints {
   static const String citas = '/citas';
   static const String negocios = '/negocios';
   static const String usuarios = '/usuarios';
+  static const String empleadoServicio = '/empleado-servicio';
 }

@@ -4,10 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/text_styles.dart';
-import '../servicios/servicios_page.dart';
 import '../../../application/cita_provider.dart';
 import '../../../domain/entities/cita.dart';
-import 'cita_detalle_page.dart';
 
 class CitasPage extends StatefulWidget {
   const CitasPage({super.key});
@@ -83,8 +81,7 @@ class _CitasPageState extends State<CitasPage> {
                 ],
               ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () =>
-              Navigator.of(context).pushNamed(ServiciosPage.routeName),
+          onPressed: () => Navigator.of(context).pushNamed('/negocios'),
           icon: const Icon(Icons.add),
           label: const Text('Reservar cita'),
         ),
